@@ -350,7 +350,7 @@ class App extends React.Component {
 
     return (
       <div className="App">
-        <h1>~</h1>
+        <h1>Snake</h1>
         <PlayField
           width={width}
           height={height}
