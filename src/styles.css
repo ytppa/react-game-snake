@@ -1,0 +1,40 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.play-field {
+  font-size: 1rem;
+  margin: 1em auto;
+  padding: 2px;
+  background-color: lightslategray;
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  grid-column-gap: 1px;
+  grid-row-gap: 1px;
+  max-width: 300px;
+}
+
+.play-field--cell {
+  margin: 2px;
+  background-color: whitesmoke;
+  padding-top: 100%;
+  cursor: pointer;
+}
+
+.play-field--cell.rabbit {
+  background-color: lightgreen;
+}
+
+.play-field--cell.snake {
+  background-color: orange;
+}
+.play-field--cell.snake.head {
+  background-color: orangered;
+}
+
+.play-field--cell:hover {
+  opacity: 0.9;
+}
