@@ -2,13 +2,15 @@ import React from "react";
 import "../styles.css";
 
 import PlayField from "./PlayField.js";
+import StatsPanel from "./StatsPanel.js";
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      width: 10,
-      height: 10,
+      width: 20,
+      height: 20,
+      eatedRabbits: 0,
       level: 0,
       rabbits: [],
       snake: [],
@@ -23,15 +25,19 @@ class App extends React.Component {
        */
       status: "PREPARING",
       defaults: {
-        snakeLength: 3,
-        rabbitsAmount: 6,
+        snakeLength: 10,
+        rabbitsAmount: 30,
         canTurnBack: false,
         canTurnOnWall: false,
-        rabbitBirthInterval: 5
+        rabbitBirthInterval: 5,
+        startDelay: 300,
+        levelStep: 3
       }
     };
+    this.interval = null;
 
     this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.tryToMove = this.tryToMove.bind(this);
   }
 
   /**
@@ -71,7 +77,12 @@ class App extends React.Component {
     }
 
     // Temporarily keybinding to trigger movement
-    if (keycode === 32) this.tryToMove();
+    // if (keycode === 32) this.tryToMove();
+
+    if (this.state.status === "READY") {
+      this.setState({ status: "PLAYING" });
+      this.setLevelDelay();
+    }
   }
 
   /**
@@ -283,14 +294,31 @@ class App extends React.Component {
    */
   updateRabbits(nextPosition) {
     let newRabbits = this.state.rabbits;
+    const { eatedRabbits, level } = this.state,
+      levelStep = this.state.defaults.levelStep;
 
     // Eat rabbit if needed
     const rabbitIndex = newRabbits.findIndex(
       rabbit => rabbit.x === nextPosition.x && rabbit.y === nextPosition.y
     );
-    if (rabbitIndex !== -1) newRabbits.splice(rabbitIndex, 1);
+    if (rabbitIndex !== -1) {
+      console.log("~ Catched the rabbit");
+      // Remove eated rabbit
+      newRabbits.splice(rabbitIndex, 1);
 
-    // Add new rabbit if needed
+      // Raise up level if needed
+      if ((eatedRabbits + 1) % levelStep === 0) {
+        this.setState({ level: level + 1, eatedRabbits: eatedRabbits + 1 });
+      } else {
+        this.setState({ eatedRabbits: eatedRabbits + 1 });
+      }
+
+      // Add new rabbit
+      const newRabbit = this.toAddNewRabbit(
+        [].concat(nextPosition, this.state.snake)
+      );
+      newRabbits.push(newRabbit);
+    }
 
     return newRabbits;
   }
@@ -323,6 +351,7 @@ class App extends React.Component {
     console.warn("[ RIP ]");
     document.removeEventListener("keydown", this.handleKeyPress);
     this.setState({ status: "GAME_OVER" });
+    clearInterval(this.interval);
   }
 
   componentDidMount() {
@@ -338,19 +367,34 @@ class App extends React.Component {
 
     // Rabbits
     for (let i = 0; i < rabbitsAmount; i += 1) {
-      const newRabbit = this.toAddNewRabbit();
+      const newRabbit = this.toAddNewRabbit(snake);
       rabbits.push(newRabbit);
     }
 
     this.setState({
-      rabbits: rabbits,
       snake: snake,
+      rabbits: rabbits,
       status: "READY"
     });
+
     document.addEventListener("keydown", this.handleKeyPress);
   }
 
-  toAddNewRabbit() {
+  setLevelDelay() {
+    const { startDelay } = this.state.defaults,
+      { level } = this.state,
+      delay = startDelay - (startDelay * 0.01 - level);
+
+    clearInterval(this.interval);
+    this.interval = setInterval(this.tryToMove, delay);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeyPress);
+    clearInterval(this.interval);
+  }
+
+  toAddNewRabbit(busySpots) {
     const { width, height } = this.state;
     let isNewSpotFree = false,
       newSpot = {};
@@ -364,31 +408,36 @@ class App extends React.Component {
       };
 
       // Check if new coordinates are free of rabbits
-      isNewSpotFree = this.checkIfSpotIsFree(newSpot);
+      isNewSpotFree = this.checkIfSpotIsFree(newSpot, busySpots);
     }
 
     return newSpot;
   }
 
-  checkIfSpotIsFree(newSpot) {
-    const { rabbits } = this.state;
+  checkIfSpotIsFree(newSpot, busySpots) {
+    const { rabbits } = this.state,
+      dotsToBeChecked = busySpots || [];
 
     if (
       rabbits.findIndex(
-        rabbit => rabbit.x === newSpot.x && rabbit.y === newSpot.y
-      ) === -1
+        rabbit => newSpot.x === rabbit.x && newSpot.y === rabbit.y
+      ) !== -1
     )
-      return true;
+      return false;
 
-    return false;
-  }
+    if (
+      dotsToBeChecked.findIndex(
+        snakePart => newSpot.x === snakePart.x && newSpot.y === snakePart.y
+      ) !== -1
+    )
+      return false;
 
-  componentWillUnmount() {
-    document.removeEventListener("keydown", this.handleKeyPress);
+    return true;
   }
 
   render() {
-    const { width, height, rabbits, snake, status } = this.state,
+    const { width, height, rabbits, snake, status, level } = this.state,
+      snakeLength = snake.length,
       statusClassName =
         status === "GAME_OVER"
           ? "status--game-over"
@@ -399,12 +448,15 @@ class App extends React.Component {
     return (
       <div className={`App ${statusClassName}`}>
         <h1>Snake</h1>
-        <PlayField
-          width={width}
-          height={height}
-          rabbits={rabbits}
-          snake={snake}
-        />
+        <div className="game-screen">
+          <PlayField
+            width={width}
+            height={height}
+            rabbits={rabbits}
+            snake={snake}
+          />
+          <StatsPanel level={level} snakeLength={snakeLength} />
+        </div>
       </div>
     );
   }
