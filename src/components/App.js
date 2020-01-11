@@ -10,9 +10,18 @@ class App extends React.Component {
       width: 10,
       height: 10,
       level: 0,
-      rabbits: [{ x: 0, y: 1 }],
+      rabbits: [],
       snake: [],
       direction: "RIGHT",
+      /**
+       * Possible game statuses:
+       * PREPARING
+       * READY
+       * PLAYING
+       * PAUSE
+       * GAME_OVER
+       */
+      status: "PREPARING",
       defaults: {
         snakeLength: 3,
         rabbitsAmount: 6,
@@ -26,14 +35,27 @@ class App extends React.Component {
   }
 
   /**
+   * Prevent updating DOM if:
+   * - Stage is still preparing
+   * - Game is paused
+   */
+  shouldComponentUpdate(nextProps, nextState) {
+    if (nextState.status === "PREPARING" || nextState.status === "PAUSE")
+      return false;
+
+    return true;
+  }
+
+  /**
    * Handling the key press to rule the snake
    * @param {Object} event - contains key code in an attribute `keyCode`
    */
   handleKeyPress(event) {
-    // w = 87, a = 65, s = 83, d = 68
-    // up = 38, left = 37, down = 40, right = 39
     var keycode = event.keyCode ? event.keyCode : event.which;
 
+    // Just memo:
+    // w = 87, a = 65, s = 83, d = 68
+    // up = 38, left = 37, down = 40, right = 39
     if (keycode === 87 || keycode === 38) {
       // Try to turn Up
       this.tryToTurnUp();
@@ -48,9 +70,14 @@ class App extends React.Component {
       this.tryToTurnRight();
     }
 
-    if (keycode === 32) this.tryToMove(); // temporarily keybinding to trigger movement
+    // Temporarily keybinding to trigger movement
+    if (keycode === 32) this.tryToMove();
   }
 
+  /**
+   * Define current snake head direction according to the head and neck positions
+   * @returns {string} - one of the {string} values: "UP"/"LEFT"/"DOWN"/"RIGHT"
+   */
   getCurrentHeadDirection() {
     const head = this.state.snake[0],
       neck = this.state.snake[1];
@@ -63,6 +90,7 @@ class App extends React.Component {
 
   /**
    * Checking the availability to turn Up
+   * @returns {boolean} - `true` if the turn is possible
    */
   tryToTurnUp() {
     const { snake } = this.state,
@@ -79,6 +107,7 @@ class App extends React.Component {
 
   /**
    * Checking the availability to turn Left
+   * @returns {boolean} - `true` if the turn is possible
    */
   tryToTurnLeft() {
     const { snake } = this.state,
@@ -96,6 +125,7 @@ class App extends React.Component {
 
   /**
    * Checking the availability to turn Down
+   * @returns {boolean} - `true` if the turn is possible
    */
   tryToTurnDown() {
     const { snake, height } = this.state,
@@ -113,6 +143,7 @@ class App extends React.Component {
 
   /**
    * Checking the availability to turn Right
+   * @returns {boolean} - `true` if the turn is possible
    */
   tryToTurnRight() {
     const { snake, width } = this.state,
@@ -130,6 +161,7 @@ class App extends React.Component {
 
   /**
    * Get next position according to Direction and current Head position
+   * @returns {Object[]} - an array with properties "x" and "y"
    */
   getNextPosition() {
     const { snake, direction } = this.state;
@@ -156,6 +188,7 @@ class App extends React.Component {
    * @param {Object[]} nextPosition - coordinates of next head position of moving snake
    * @param {int} nextPosition.x - horizontal coordinate
    * @param {int} nextPosition.y - verttical coordinate
+   * @returns {boolean} - `true` if there is a collision of head with stage wall
    */
   checkWallCollisions(nextPosition) {
     const { width, height } = this.state;
@@ -171,18 +204,18 @@ class App extends React.Component {
   }
 
   /**
-   * Checking fi there is a collision of the next head position with snake itself
+   * Checking if there is a collision of the next head position with snake itself
    * @param {Object[]} nextPosition - coordinates of next head position of moving snake
    * @param {int} nextPosition.x - horizontal coordinate
    * @param {int} nextPosition.y - verttical coordinate
    * @param {boolean} isGrowing - `true` if there was a rabbit on the nextPosition
+   * @returns {boolean} - `true` if there is a collision of head with tail
    */
   checkSnakeCollisions(nextPosition, isGrowing) {
     const { snake } = this.state;
     let snakeTail = snake;
-    if (!isGrowing) {
-      snakeTail = snakeTail.slice(0, -1);
-    }
+
+    if (!isGrowing) snakeTail = snakeTail.slice(0, -1);
 
     if (
       snakeTail.findIndex(
@@ -226,6 +259,7 @@ class App extends React.Component {
    * @param {Object[]} nextPosition - coordinates of next head position of moving snake
    * @param {int} nextPosition.x - horizontal coordinate
    * @param {int} nextPosition.y - verttical coordinate
+   * @returns {boolean} - `true` if there is a rabbit on the Next potision
    */
   checkRabbit(nextPosition) {
     const { rabbits } = this.state;
@@ -242,7 +276,10 @@ class App extends React.Component {
 
   /**
    * Eating the rabbit
-   * @param {int} rabbitIndex - index of a elements in an array `this.state.rabbits` that should be removed
+   * @param {Object[]} nextPosition - coordinates of next head position of moving snake
+   * @param {int} nextPosition.x - horizontal coordinate
+   * @param {int} nextPosition.y - verttical coordinate
+   * @returns {Object[]} - an array of rabbits coordinates (`x`,`y`)
    */
   updateRabbits(nextPosition) {
     let newRabbits = this.state.rabbits;
@@ -251,7 +288,7 @@ class App extends React.Component {
     const rabbitIndex = newRabbits.findIndex(
       rabbit => rabbit.x === nextPosition.x && rabbit.y === nextPosition.y
     );
-    if (rabbitIndex !== -1) newRabbits = newRabbits.splice(rabbitIndex, 1);
+    if (rabbitIndex !== -1) newRabbits.splice(rabbitIndex, 1);
 
     // Add new rabbit if needed
 
@@ -260,10 +297,10 @@ class App extends React.Component {
 
   /**
    * Main moving action (will be eterated later)
+   * @returns {boolean} - `true` if there is no collisions
    */
   tryToMove() {
     let nextPosition = this.getNextPosition();
-
     const isGrowing = this.checkRabbit(nextPosition);
 
     if (
@@ -279,8 +316,13 @@ class App extends React.Component {
     return true;
   }
 
+  /**
+   * Case with a tragic ending
+   */
   gameOver() {
-    console.info("... to be continued.");
+    console.warn("[ RIP ]");
+    document.removeEventListener("keydown", this.handleKeyPress);
+    this.setState({ status: "GAME_OVER" });
   }
 
   componentDidMount() {
@@ -297,13 +339,13 @@ class App extends React.Component {
     // Rabbits
     for (let i = 0; i < rabbitsAmount; i += 1) {
       const newRabbit = this.toAddNewRabbit();
-      console.log(newRabbit);
       rabbits.push(newRabbit);
     }
 
     this.setState({
       rabbits: rabbits,
-      snake: snake
+      snake: snake,
+      status: "READY"
     });
     document.addEventListener("keydown", this.handleKeyPress);
   }
@@ -346,10 +388,16 @@ class App extends React.Component {
   }
 
   render() {
-    const { width, height, rabbits, snake } = this.state;
+    const { width, height, rabbits, snake, status } = this.state,
+      statusClassName =
+        status === "GAME_OVER"
+          ? "status--game-over"
+          : status === "PAUSE"
+          ? "status-pause"
+          : "";
 
     return (
-      <div className="App">
+      <div className={`App ${statusClassName}`}>
         <h1>Snake</h1>
         <PlayField
           width={width}

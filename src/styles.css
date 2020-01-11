@@ -3,6 +3,11 @@
   text-align: center;
 }
 
+.status--pause,
+.status--game-over {
+  opacity: 0.8;
+}
+
 .play-field {
   font-size: 1rem;
   margin: 1em auto;
