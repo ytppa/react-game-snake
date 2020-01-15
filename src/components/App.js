@@ -1,5 +1,6 @@
 import React from "react";
 import "../styles.css";
+import "../experiment.css";
 
 import PlayField from "./PlayField.js";
 import StatsPanel from "./StatsPanel.js";
@@ -31,7 +32,7 @@ class App extends React.Component {
         canTurnOnWall: false,
         rabbitBirthInterval: 5,
         startDelay: 300,
-        levelStep: 3
+        levelStep: 10
       }
     };
     this.interval = null;
@@ -46,8 +47,7 @@ class App extends React.Component {
    * - Game is paused
    */
   shouldComponentUpdate(nextProps, nextState) {
-    if (nextState.status === "PREPARING" || nextState.status === "PAUSE")
-      return false;
+    if (nextState.status === "PREPARING") return false;
 
     return true;
   }
@@ -74,6 +74,9 @@ class App extends React.Component {
     } else if (keycode === 68 || keycode === 39) {
       // Try to turn Right
       this.tryToTurnRight();
+    } else if (keycode === 80) {
+      // Pause toggling
+      this.togglePause();
     }
 
     // Temporarily keybinding to trigger movement
@@ -324,10 +327,31 @@ class App extends React.Component {
   }
 
   /**
+   * Toggling pause btn - `p`
+   */
+  togglePause() {
+    const { status } = this.state;
+
+    if (status !== "PAUSE" && status !== "PLAYING") return false;
+
+    if (status === "PAUSE") {
+      this.setState({ status: "PLAYING" });
+    } else {
+      this.setState({ status: "PAUSE" });
+    }
+
+    return true;
+  }
+
+  /**
    * Main moving action (will be eterated later)
    * @returns {boolean} - `true` if there is no collisions
    */
   tryToMove() {
+    const { status } = this.state;
+    // Don't move, if game is paused. But listeners are staying active
+    if (status === "PAUSE") return false;
+
     let nextPosition = this.getNextPosition();
     const isGrowing = this.checkRabbit(nextPosition);
 
@@ -442,7 +466,7 @@ class App extends React.Component {
         status === "GAME_OVER"
           ? "status--game-over"
           : status === "PAUSE"
-          ? "status-pause"
+          ? "status--pause"
           : "";
 
     return (
