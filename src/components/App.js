@@ -27,7 +27,7 @@ class App extends React.Component {
       status: "PREPARING",
       defaults: {
         snakeLength: 10,
-        rabbitsAmount: 30,
+        rabbitsAmount: 2,
         canTurnBack: false,
         canTurnOnWall: false,
         rabbitBirthInterval: 5,
