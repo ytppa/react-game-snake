@@ -80,7 +80,7 @@ class App extends React.Component {
     } else if (keycode === 68 || keycode === 39) {
       // Try to turn Right
       this.tryToTurnRight();
-    } else if (keycode === 80) {
+    } else if (keycode === 80 || keycode === 32) {
       // Pause toggling
       this.togglePause();
     }
