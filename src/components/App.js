@@ -3,7 +3,7 @@ import "../styles.css";
 import "../experiment.css";
 
 import PlayField from "./PlayField.js";
-import Message from "./Message.js";
+import StatusMessage from "./StatusMessage.js";
 import Button from "./Button.js";
 import StatsPanel from "./StatsPanel.js";
 
@@ -493,27 +493,6 @@ class App extends React.Component {
           ? "status--pause"
           : "";
 
-    let message = null;
-    if (status === "READY") {
-      message = <Message>Press any key to&nbsp;start</Message>;
-    } else if (status === "GAME_OVER") {
-      message = (
-        <Message>
-          Game over
-          <Button handler={this.restartHandler}>Restart</Button>
-        </Message>
-      );
-    } else if (status === "PAUSE") {
-      message = (
-        <Message>
-          Game paused.
-          <br />
-          <br />
-          Press «P» to resume.
-        </Message>
-      );
-    }
-
     return (
       <div className={`App ${statusClassName}`}>
         <h1>Snake</h1>
@@ -525,7 +504,10 @@ class App extends React.Component {
             snake={snake}
           />
           <StatsPanel level={level} snakeLength={snakeLength}>
-            {message}
+            <StatusMessage
+              status={status}
+              restartHandler={this.restartHandler}
+            />
           </StatsPanel>
         </div>
       </div>
