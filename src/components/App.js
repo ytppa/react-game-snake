@@ -3,6 +3,8 @@ import "../styles.css";
 import "../experiment.css";
 
 import PlayField from "./PlayField.js";
+import Message from "./Message.js";
+import Button from "./Button.js";
 import StatsPanel from "./StatsPanel.js";
 
 class App extends React.Component {
@@ -16,6 +18,7 @@ class App extends React.Component {
       rabbits: [],
       snake: [],
       direction: "RIGHT",
+
       /**
        * Possible game statuses:
        * PREPARING
@@ -32,13 +35,16 @@ class App extends React.Component {
         canTurnOnWall: false,
         rabbitBirthInterval: 5,
         startDelay: 300,
-        levelStep: 10
+        levelStep: 10,
+        eatedRabbits: 0,
+        level: 0
       }
     };
     this.interval = null;
 
     this.handleKeyPress = this.handleKeyPress.bind(this);
     this.tryToMove = this.tryToMove.bind(this);
+    this.restartHandler = this.restartHandler.bind(this);
   }
 
   /**
@@ -378,8 +384,16 @@ class App extends React.Component {
     clearInterval(this.interval);
   }
 
-  componentDidMount() {
-    const { snakeLength, rabbitsAmount } = this.state.defaults;
+  /**
+   * Prepare game on game starting or restarting
+   */
+  gamePrepare() {
+    const {
+      snakeLength,
+      rabbitsAmount,
+      eatedRabbits,
+      length
+    } = this.state.defaults;
     let snake = [],
       rabbits = [];
 
@@ -395,13 +409,19 @@ class App extends React.Component {
       rabbits.push(newRabbit);
     }
 
+    document.addEventListener("keydown", this.handleKeyPress);
+
     this.setState({
       snake: snake,
       rabbits: rabbits,
-      status: "READY"
+      status: "READY",
+      eatedRabbits: eatedRabbits,
+      length: length
     });
+  }
 
-    document.addEventListener("keydown", this.handleKeyPress);
+  componentDidMount() {
+    this.gamePrepare();
   }
 
   setLevelDelay() {
@@ -459,6 +479,10 @@ class App extends React.Component {
     return true;
   }
 
+  restartHandler() {
+    this.gamePrepare();
+  }
+
   render() {
     const { width, height, rabbits, snake, status, level } = this.state,
       snakeLength = snake.length,
@@ -468,6 +492,27 @@ class App extends React.Component {
           : status === "PAUSE"
           ? "status--pause"
           : "";
+
+    let message = null;
+    if (status === "READY") {
+      message = <Message>Press any key to&nbsp;start</Message>;
+    } else if (status === "GAME_OVER") {
+      message = (
+        <Message>
+          Game over
+          <Button handler={this.restartHandler}>Restart</Button>
+        </Message>
+      );
+    } else if (status === "PAUSE") {
+      message = (
+        <Message>
+          Game paused.
+          <br />
+          <br />
+          Press «P» to resume.
+        </Message>
+      );
+    }
 
     return (
       <div className={`App ${statusClassName}`}>
@@ -479,7 +524,9 @@ class App extends React.Component {
             rabbits={rabbits}
             snake={snake}
           />
-          <StatsPanel level={level} snakeLength={snakeLength} />
+          <StatsPanel level={level} snakeLength={snakeLength}>
+            {message}
+          </StatsPanel>
         </div>
       </div>
     );

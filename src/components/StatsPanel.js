@@ -1,6 +1,6 @@
 import React from "react";
 
-function StatsPanel({ level, snakeLength }) {
+function StatsPanel({ level, snakeLength, children }) {
   const fields = [
     { name: "Level", value: level },
     { name: "Length", value: snakeLength }
@@ -11,6 +11,7 @@ function StatsPanel({ level, snakeLength }) {
       {fields.map((field, index) => (
         <StatsField key={index} name={field.name} value={field.value} />
       ))}
+      {children}
     </div>
   );
 }

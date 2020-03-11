@@ -74,3 +74,20 @@
   grid-template-columns: repeat(2, 1fr);
   margin-bottom: 0.2em;
 }
+
+/* Message */
+
+.message {
+  margin-top: 1rem;
+  background: #efefef;
+}
+
+.message--inner {
+  padding: 1rem;
+}
+
+/* Button  */
+.button {
+  margin-top: 1rem;
+  padding: 0.4rem 0.8rem;
+}
