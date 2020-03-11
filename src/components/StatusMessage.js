@@ -1,6 +1,8 @@
 import React from "react";
 
-function StatusMessage({ status }) {
+import Button from "./Button.js";
+
+function StatusMessage({ status, handleClick }) {
   let message = null;
   if (status === "READY") {
     message = <>Press any key to&nbsp;start</>;
@@ -8,7 +10,7 @@ function StatusMessage({ status }) {
     message = (
       <>
         Game over
-        <Button handler={this.restartHandler}>Restart</Button>
+        <Button handleClick={handleClick}>Restart</Button>
       </>
     );
   } else if (status === "PAUSE") {
@@ -17,15 +19,15 @@ function StatusMessage({ status }) {
         Game paused.
         <br />
         <br />
-        Press «P» to resume.
+        Press «P» or «space» to&nbsp;resume.
       </>
     );
   }
 
   if (message) {
     return (
-      <div class="message">
-        <div class="message--inner">{message}</div>
+      <div className="message">
+        <div className="message--inner">{message}</div>
       </div>
     );
   } else return null;

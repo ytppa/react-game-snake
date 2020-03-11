@@ -4,7 +4,6 @@ import "../experiment.css";
 
 import PlayField from "./PlayField.js";
 import StatusMessage from "./StatusMessage.js";
-import Button from "./Button.js";
 import StatsPanel from "./StatsPanel.js";
 
 class App extends React.Component {
@@ -37,14 +36,15 @@ class App extends React.Component {
         startDelay: 300,
         levelStep: 10,
         eatedRabbits: 0,
-        level: 0
+        level: 0,
+        direction: "RIGHT"
       }
     };
     this.interval = null;
 
     this.handleKeyPress = this.handleKeyPress.bind(this);
     this.tryToMove = this.tryToMove.bind(this);
-    this.restartHandler = this.restartHandler.bind(this);
+    this.restart = this.restart.bind(this);
   }
 
   /**
@@ -63,32 +63,45 @@ class App extends React.Component {
    * @param {Object} event - contains key code in an attribute `keyCode`
    */
   handleKeyPress(event) {
-    var keycode = event.keyCode ? event.keyCode : event.which;
+    const keycode = event.keyCode ? event.keyCode : event.which,
+      { status } = this.state;
+
+    // Restart
+    if (keycode === 82) {
+      // Restart
+      clearInterval(this.interval);
+      this.restart();
+      return false;
+    }
 
     // Just memo:
     // w = 87, a = 65, s = 83, d = 68
     // up = 38, left = 37, down = 40, right = 39
-    if (keycode === 87 || keycode === 38) {
-      // Try to turn Up
-      this.tryToTurnUp();
-    } else if (keycode === 65 || keycode === 37) {
-      // Try to turn Left
-      this.tryToTurnLeft();
-    } else if (keycode === 83 || keycode === 40) {
-      // Try to turn Down
-      this.tryToTurnDown();
-    } else if (keycode === 68 || keycode === 39) {
-      // Try to turn Right
-      this.tryToTurnRight();
-    } else if (keycode === 80 || keycode === 32) {
+    if (status === "PLAYING") {
+      if (keycode === 87 || keycode === 38) {
+        // Try to turn Up
+        this.tryToTurnUp();
+      } else if (keycode === 65 || keycode === 37) {
+        // Try to turn Left
+        this.tryToTurnLeft();
+      } else if (keycode === 83 || keycode === 40) {
+        // Try to turn Down
+        this.tryToTurnDown();
+      } else if (keycode === 68 || keycode === 39) {
+        // Try to turn Right
+        this.tryToTurnRight();
+      }
+    }
+
+    // Pause
+    if (keycode === 80 || keycode === 32) {
       // Pause toggling
       this.togglePause();
     }
 
     // Temporarily keybinding to trigger movement
     // if (keycode === 32) this.tryToMove();
-
-    if (this.state.status === "READY") {
+    if (status === "READY") {
       this.setState({ status: "PLAYING" });
       this.setLevelDelay();
     }
@@ -379,7 +392,6 @@ class App extends React.Component {
    */
   gameOver() {
     console.warn("[ RIP ]");
-    document.removeEventListener("keydown", this.handleKeyPress);
     this.setState({ status: "GAME_OVER" });
     clearInterval(this.interval);
   }
@@ -392,7 +404,8 @@ class App extends React.Component {
       snakeLength,
       rabbitsAmount,
       eatedRabbits,
-      length
+      length,
+      direction
     } = this.state.defaults;
     let snake = [],
       rabbits = [];
@@ -409,18 +422,18 @@ class App extends React.Component {
       rabbits.push(newRabbit);
     }
 
-    document.addEventListener("keydown", this.handleKeyPress);
-
     this.setState({
       snake: snake,
       rabbits: rabbits,
       status: "READY",
       eatedRabbits: eatedRabbits,
-      length: length
+      length: length,
+      direction: direction
     });
   }
 
   componentDidMount() {
+    document.addEventListener("keydown", this.handleKeyPress);
     this.gamePrepare();
   }
 
@@ -479,7 +492,8 @@ class App extends React.Component {
     return true;
   }
 
-  restartHandler() {
+  restart() {
+    console.info("~ Restart");
     this.gamePrepare();
   }
 
@@ -504,10 +518,7 @@ class App extends React.Component {
             snake={snake}
           />
           <StatsPanel level={level} snakeLength={snakeLength}>
-            <StatusMessage
-              status={status}
-              restartHandler={this.restartHandler}
-            />
+            <StatusMessage status={status} handleClick={this.restart} />
           </StatsPanel>
         </div>
       </div>

@@ -2,9 +2,9 @@ import React from "react";
 
 function Howto() {
   return (
-    <div class="howto">
-      <div class="howto--icon">?</div>
-      <div class="howto--faq">
+    <div className="howto">
+      <div className="howto--icon">?</div>
+      <div className="howto--faq">
         Press «P» or «Space» to pause game.
         <br />
         <br />
