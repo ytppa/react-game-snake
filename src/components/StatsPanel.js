@@ -1,5 +1,7 @@
 import React from "react";
 
+import Howto from "./Howto.js";
+
 function StatsPanel({ level, snakeLength, children }) {
   const fields = [
     { name: "Level", value: level },
@@ -11,6 +13,7 @@ function StatsPanel({ level, snakeLength, children }) {
       {fields.map((field, index) => (
         <StatsField key={index} name={field.name} value={field.value} />
       ))}
+      <Howto />
       {children}
     </div>
   );

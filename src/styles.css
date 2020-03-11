@@ -1,5 +1,8 @@
 :root {
   --field-width: 400px;
+  --sections-bg: #efefef;
+  --faq-icon-bg: #cccccc;
+  --faq-icon-bg-hovered: green;
 }
 .App {
   font-family: sans-serif;
@@ -79,7 +82,7 @@
 
 .message {
   margin-top: 1rem;
-  background: #efefef;
+  background: var(--sections-bg);
 }
 
 .message--inner {
@@ -90,4 +93,66 @@
 .button {
   margin-top: 1rem;
   padding: 0.4rem 0.8rem;
+}
+
+/* */
+.howto {
+  position: relative;
+  margin-top: 1rem;
+}
+.howto--icon {
+  display: block;
+  line-height: 1.1em;
+  width: 1em;
+  height: 1em;
+  color: white;
+  padding: 0.2em;
+  text-align: center;
+  border-radius: 50%;
+  background-color: var(--faq-icon-bg);
+  cursor: pointer;
+  transition: background-color 0.2s linear;
+}
+
+.howto--icon:hover {
+  background-color: var(--faq-icon-bg-hovered);
+}
+
+.howto--faq {
+  visibility: hidden;
+  opacity: 0;
+  width: 200px;
+  background-color: var(--sections-bg);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+  top: 2rem;
+  left: 0%;
+  transform: translateX(calc(-50% + 1rem));
+
+  /* Text */
+  color: #444444;
+  font-size: 0.75rem;
+
+  z-index: 10;
+}
+
+.howto--faq::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent var(--sections-bg) transparent;
+}
+
+.howto--icon:hover + .howto--faq {
+  visibility: visible;
+  opacity: 1;
 }
