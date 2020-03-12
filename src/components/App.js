@@ -5,6 +5,7 @@ import "../experiment.css";
 import PlayField from "./PlayField.js";
 import StatusMessage from "./StatusMessage.js";
 import StatsPanel from "./StatsPanel.js";
+import SwipeListener from "./SwipeListener.js";
 
 class App extends React.Component {
   constructor(props) {
@@ -510,6 +511,7 @@ class App extends React.Component {
     return (
       <div className={`App ${statusClassName}`}>
         <h1>Snake</h1>
+        <SwipeListener />
         <div className="game-screen">
           <PlayField
             width={width}
